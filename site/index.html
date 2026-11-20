@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0">
+<meta name="theme-color" content="#2a2a2d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Messages">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Messages</title>
+<style>
+:root{--bg:#2a2a2d;--panel:#1c1c1e;--av:#3c3c3f;--avi:#9a9a9d;--txt:#e6e6e8;--sub:#a9a9ad;--badge:#8ab4f8;--fab:#1f4fb5;--fab2:#48484b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;font-family:"Google Sans",Roboto,"Segoe UI",Arial,sans-serif;color:var(--txt)}
+.phone{position:relative;max-width:412px;height:100%;margin:0 auto;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+header{display:flex;align-items:center;height:64px;padding:0 16px;flex:none}
+header h1{font-size:23px;font-weight:400;letter-spacing:-.2px;flex:1;color:#fff}
+header svg{width:24px;height:24px;fill:#e3e3e6;margin-right:26px;cursor:pointer}
+.me{width:34px;height:34px;border-radius:50%;background:#000;border:1px solid #1a1a1a;margin-right:0}
+.panel{flex:1;background:var(--panel);border-radius:28px 28px 0 0;overflow-y:auto;padding-top:6px;padding-bottom:120px;scrollbar-width:none}
+.panel::-webkit-scrollbar{display:none}
+.row{display:flex;align-items:flex-start;padding:15px 17px 15px 17px;height:89px;cursor:pointer}
+.row:active{background:#242427}
+.av{flex:none;width:56px;height:56px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font-size:30px;color:#2a2a3a;margin-top:3px;overflow:hidden}
+.av svg{width:34px;height:34px;fill:var(--avi);margin-top:6px}
+.mid{flex:1;min-width:0;margin-left:19px}
+.name{font-size:18px;line-height:24px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:2px}
+.snip{font-size:15.5px;line-height:19px;color:var(--sub);margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.unread .name{font-weight:600;color:#fff}
+.unread .snip{color:#fff;font-weight:500}
+.meta{flex:none;width:60px;text-align:right;font-size:13.5px;color:var(--sub);padding-top:2px}
+.unread .meta{color:#fff;font-weight:500}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--badge);color:#0b2a5b;font-size:11px;font-weight:600;margin-top:9px}
+.fabs{position:absolute;right:20px;bottom:26px;display:flex;flex-direction:column;align-items:center;gap:15px}
+.f1,.f2{border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.45);cursor:pointer}
+.f1{width:60px;height:60px;background:var(--fab2)}
+.f2{width:60px;height:60px;background:var(--fab)}
+.f2 svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linejoin:round}
+/* chat */
+.chat{position:absolute;inset:0;background:var(--panel);display:none;flex-direction:column;z-index:5}
+.chat.open{display:flex}
+.ch{display:flex;align-items:center;gap:12px;height:64px;padding:0 12px;background:var(--bg)}
+.ch .back{width:24px;height:24px;fill:#e3e3e6;cursor:pointer}
+.ch .av{width:40px;height:40px;font-size:20px;margin:0}
+.ch .av svg{width:24px;height:24px;margin-top:4px}
+.ch b{font-weight:400;font-size:19px}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:6px}
+.b{max-width:78%;padding:10px 14px;border-radius:20px;font-size:16px;line-height:21px}
+.in{background:#303033;align-self:flex-start;border-bottom-left-radius:6px}
+.out{background:#8ab4f8;color:#06214a;align-self:flex-end;border-bottom-right-radius:6px}
+.inp{display:flex;gap:10px;padding:10px 12px 16px;background:var(--panel)}
+.inp input{flex:1;background:#2f2f32;border:0;border-radius:24px;padding:13px 18px;color:#fff;font-size:16px;outline:none;font-family:inherit}
+.inp button{width:46px;height:46px;border-radius:50%;border:0;background:#8ab4f8;cursor:pointer}
+.inp button svg{width:22px;height:22px;fill:#06214a}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    #app {
+      width: 100%;
+      max-width: min(420px, 100vw);
+      min-width: 0;
+      height: 100dvh;
+      max-height: 820px;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+      background: #1f1f1f;
+      border-radius: 20px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    #app.fullscreen-mode {
+      max-width: 100vw;
+      max-height: 100dvh;
+      border-radius: 0;
+    }
+
+    #header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      padding: 12px 12px 12px 8px;
+      overflow: hidden;
+      background: #1f1f1f;
+      color: #fff;
+      border-radius: 20px 20px 0 0;
+    }
+
+    #app.fullscreen-mode #header {
+      border-radius: 0;
+    }
+
+    .hdr-back {
+      padding: 0 6px;
+      font-size: 22px;
+      line-height: 1;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #333;
+    }
+
+    #avatar svg {
+      width: 20px;
+      height: 20px;
+      fill: #ddd;
+      pointer-events: none;
+    }
+
+    #hdr-info {
+      flex: 1;
+      padding-left: 6px;
+    }
+
+    #contact-name {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .hdr-icons {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-right: 8px;
+    }
+
+    .hdr-icons svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+      pointer-events: none;
+    }
+
+    #fullscreen-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -10px;
+      padding: 10px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #fullscreen-btn svg,
+    #fullscreen-btn svg * {
+      pointer-events: none !important;
+    }
+
+    #messages {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 10px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 12px 14px 18px;
+      background: #141414;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #messages::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    #messages::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 999px;
+    }
+
+    .date-label {
+      margin: 10px 0 2px;
+      font-size: 12px;
+      text-align: center;
+      color: #7a7a7a;
+    }
+
+    .texting-label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      text-align: center;
+      color: #848484;
+    }
+
+    .msg-row {
+      display: flex;
+    }
+
+    .msg-row.sent {
+      justify-content: flex-end;
+    }
+
+    .msg-row.received {
+      justify-content: flex-start;
+    }
+
+    .bubble {
+      max-width: 82%;
+      padding: 12px 16px;
+      font-size: 15px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .bubble u {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .sent .bubble {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 18px;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+      word-break: keep-all;
+      color: #000;
+      background: #cce4ff;
+      border-radius: 20px 20px 4px 20px;
+    }
+
+    .received .bubble {
+      color: #f1f1f1;
+      background: #232323;
+      border-radius: 20px 20px 20px 4px;
+    }
+
+    .msg-row.received .ticket-wrap {
+      width: max-content;
+      max-width: 85%;
+    }
+
+    .received .bubble.ticket {
+      width: max-content;
+      max-width: 100%;
+      padding: 14px 18px;
+      font-size: 17px;
+      line-height: 1.65;
+      letter-spacing: 0.01em;
+    }
+
+    #input-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      min-width: 0;
+      padding: 10px 12px max(16px, env(safe-area-inset-bottom));
+      overflow: hidden;
+      background: #171717;
+      border-radius: 0 0 20px 20px;
+    }
+
+    #app.fullscreen-mode #input-area {
+      border-radius: 0;
+    }
+
+    #input-left {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #252525;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    #input-left svg {
+      width: 22px;
+      height: 22px;
+      fill: #b1b1b1;
+      pointer-events: none;
+    }
+
+    #input-middle {
+      display: flex;
+      align-items: center;
+      flex: 1 1 0;
+      min-width: 0;
+      gap: 6px;
+      height: 46px;
+      padding: 0 8px 0 12px;
+      overflow: hidden;
+      background: #242424;
+      border-radius: 26px;
+    }
+
+    #msg-input {
+      flex: 1 1 auto;
+      width: 0;
+      min-width: 0;
+      height: 100%;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      color: #fff;
+      outline: none;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    #msg-input::placeholder {
+      color: #7f7f7f;
+    }
+
+    .mid-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    .mid-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #8f8f8f;
+      pointer-events: none;
+    }
+
+    #send-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 50%;
+      background: #2c2c2c;
+      cursor: pointer;
+      transition: background 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #send-btn.active {
+      background: #1a73ff;
+    }
+
+    #send-btn:active {
+      opacity: 0.8;
+    }
+
+    #send-btn svg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.15s;
+      pointer-events: none !important;
+    }
+
+    #send-btn svg * {
+      pointer-events: none !important;
+    }
+
+    #icon-wave {
+      opacity: 1;
+    }
+
+    #icon-send {
+      opacity: 0;
+    }
+
+    #send-btn.active #icon-wave {
+      opacity: 0;
+    }
+
+    #send-btn.active #icon-send {
+      opacity: 1;
+    }
+
+    .typing {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 10px 14px;
+      background: #252525;
+      border-radius: 20px 20px 20px 4px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #6d6d6d;
+      animation: bounce 1.2s infinite;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+      }
+
+      30% {
+        transform: translateY(-4px);
+      }
+    }
+
+    .home-bar {
+      flex-shrink: 0;
+      width: 80px;
+      height: 4px;
+      margin: 4px auto 6px;
+      background: #393939;
+      border-radius: 2px;
+    }
+
+    #fs-enter {
+      display: block;
+    }
+
+    #fs-exit {
+      display: none;
+    }
+
+    .fullscreen-mode #fs-enter {
+      display: none;
+    }
+
+    .fullscreen-mode #fs-exit {
+      display: block;
+    }
+
+    @media (max-width: 420px) {
+      #input-area {
+        gap: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      #input-left {
+        width: 40px;
+        height: 40px;
+      }
+
+      #input-middle {
+        gap: 4px;
+        padding: 0 6px 0 10px;
+      }
+
+      .mid-icon:last-child {
+        display: none;
+      }
+    }
+  
+    /* embedded inside the Messages phone */
+    .tview{position:absolute;inset:0;z-index:6;display:none;background:#1f1f1f}
+    .tview.open{display:flex}
+    .tview #app{max-width:none;max-height:none;height:100%;width:100%;border-radius:0;box-shadow:none;overflow:hidden}
+    .tview #header,.tview #input-area{border-radius:0}
+    .tview #app.fullscreen-mode{max-width:none;max-height:none}
+    .hdr-back{cursor:pointer}
+
+.phone{height:100vh;height:100dvh}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <h1>Google Messages</h1>
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <div class="me"></div>
+  </header>
+  <div class="panel" id="list"></div>
+  <div class="fabs">
+    <button class="f1" aria-label="Gemini"><svg width="40" height="40" viewBox="0 0 40 40"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9b72f2"/><stop offset=".55" stop-color="#4a8df5"/><stop offset="1" stop-color="#4fc3f7"/></linearGradient></defs><path fill="url(#g)" d="M20 3c1.2 9.6 7.4 15.8 17 17-9.6 1.2-15.8 7.4-17 17-1.2-9.6-7.4-15.8-17-17C12.6 18.8 18.8 12.6 20 3z"/></svg></button>
+    <button class="f2" aria-label="Start chat"><svg viewBox="0 0 28 28"><path d="M6 5h16a3 3 0 013 3v8a3 3 0 01-3 3H13l-6 5v-5H6a3 3 0 01-3-3V8a3 3 0 013-3z"/></svg></button>
+  </div>
+  <div class="chat" id="chat">
+    <div class="ch"><svg class="back" id="back" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg><div class="av" id="cav"></div><b id="cname"></b></div>
+    <div class="msgs" id="msgs"></div>
+    <form class="inp" id="form" onsubmit="return false"><input id="in" placeholder="Mesaj text" autocomplete="off"><button id="send" aria-label="Trimite"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button></form>
+  </div>
+  <div class="tview" id="tview">
+<div id="app">
+    <div id="header">
+      <div class="hdr-back" aria-hidden="true">←</div>
+      <div id="avatar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+        </svg>
+      </div>
+      <div id="hdr-info">
+        <div id="contact-name"></div>
+      </div>
+      <div class="hdr-icons">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z"/>
+        </svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+        <button id="fullscreen-btn" type="button" title="Fullscreen">
+          <svg id="fs-enter" viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+          </svg>
+          <svg id="fs-exit" viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true">
+            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="messages">
+      <div class="date-label" id="date-label"></div>
+      <div class="texting-label" id="texting-label"></div>
+    </div>
+
+    <div id="input-area">
+      <div id="input-left">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+        </svg>
+      </div>
+      <div id="input-middle">
+        <input id="msg-input" type="text" enterkeyhint="send" autocomplete="off" maxlength="20" placeholder="Text message">
+        <div class="mid-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 14.49L12 14.17l-4.23 2.32 1.12-4.81-3.73-3.23 4.92-.42L12 3.4l1.92 4.63 4.92.42-3.73 3.23 1.12 4.81z"/>
+          </svg>
+        </div>
+        <div class="mid-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+        </div>
+      </div>
+
+      <button id="send-btn" type="button" aria-label="Send">
+        <svg id="icon-wave" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <rect x="2" y="13" width="2.5" height="6" rx="1.25" fill="#bbb"/>
+          <rect x="6" y="10" width="2.5" height="12" rx="1.25" fill="#bbb"/>
+          <rect x="10" y="7" width="2.5" height="18" rx="1.25" fill="#bbb"/>
+          <rect x="14" y="4" width="2.5" height="24" rx="1.25" fill="#bbb"/>
+          <rect x="18" y="7" width="2.5" height="18" rx="1.25" fill="#bbb"/>
+          <rect x="22" y="10" width="2.5" height="12" rx="1.25" fill="#bbb"/>
+          <rect x="26" y="13" width="2.5" height="6" rx="1.25" fill="#bbb"/>
+        </svg>
+        <svg id="icon-send" viewBox="0 0 24 24" width="22" height="22" fill="#fff" aria-hidden="true">
+          <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="home-bar" aria-hidden="true"></div>
+  </div>
+  </div>
+  <div class="tview" id="tview2">
+<div id="app">
+    <div id="header">
+      <div class="hdr-back" aria-hidden="true">←</div>
+      <div id="avatar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+        </svg>
+      </div>
+      <div id="hdr-info">
+        <div id="contact-name"></div>
+      </div>
+      <div class="hdr-icons">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z"/>
+        </svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+        <button id="fullscreen-btn" type="button" title="Fullscreen">
+          <svg id="fs-enter" viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+          </svg>
+          <svg id="fs-exit" viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true">
+            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="messages">
+      <div class="date-label" id="date-label"></div>
+      <div class="texting-label" id="texting-label"></div>
+    </div>
+
+    <div id="input-area">
+      <div id="input-left">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+        </svg>
+      </div>
+      <div id="input-middle">
+        <input id="msg-input" type="text" enterkeyhint="send" autocomplete="off" maxlength="20" placeholder="Text message">
+        <div class="mid-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 14.49L12 14.17l-4.23 2.32 1.12-4.81-3.73-3.23 4.92-.42L12 3.4l1.92 4.63 4.92.42-3.73 3.23 1.12 4.81z"/>
+          </svg>
+        </div>
+        <div class="mid-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+        </div>
+      </div>
+
+      <button id="send-btn" type="button" aria-label="Send">
+        <svg id="icon-wave" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <rect x="2" y="13" width="2.5" height="6" rx="1.25" fill="#bbb"/>
+          <rect x="6" y="10" width="2.5" height="12" rx="1.25" fill="#bbb"/>
+          <rect x="10" y="7" width="2.5" height="18" rx="1.25" fill="#bbb"/>
+          <rect x="14" y="4" width="2.5" height="24" rx="1.25" fill="#bbb"/>
+          <rect x="18" y="7" width="2.5" height="18" rx="1.25" fill="#bbb"/>
+          <rect x="22" y="10" width="2.5" height="12" rx="1.25" fill="#bbb"/>
+          <rect x="26" y="13" width="2.5" height="6" rx="1.25" fill="#bbb"/>
+        </svg>
+        <svg id="icon-send" viewBox="0 0 24 24" width="22" height="22" fill="#fff" aria-hidden="true">
+          <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="home-bar" aria-hidden="true"></div>
+  </div>
+  </div>
+</div>
+<script>
+const person='<svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0 2.25c-3 0-9 1.5-9 4.5V21h18v-2.25c0-3-6-4.5-9-4.5z"/></svg>';
+const C={"E":"linear-gradient(135deg,#f6a8c4,#f3c1a0)","A":"linear-gradient(135deg,#9bd1a8,#7ec3c9)","M":"#8ab4f8","I":"linear-gradient(135deg,#c9a5f2,#9bb2f5)","C":"#f7c59f","B":"#e8c76d","D":"#7fd0c3","S":"#f2a0a0"};
+const data=[
+ {n:"Elisa",m:"te sun mai tarziu",d:"Sat",u:2,l:"E"},
+ {v:"tview",n:"7000",m:"Bilet electronic nr. 13299460 ...",d:"Fri"},
+ {v:"tview2",n:"7001",m:"Bilet electronic nr. 13299461 ...",d:"Fri"},
+ {n:"Andrei Rusu",m:"ne vedem la 18:00 la cafenea",d:"Fri",u:1,l:"A"},
+ {n:"Mama",m:"nu uita sa suni la bunica",d:"Thu",l:"M"},
+ {n:"Ioana Popescu",m:"am ajuns acasa, mersi mult",d:"Wed",l:"I"},
+ {n:"Sinch",m:"<#> Your Tinder code is 470028 dwEzWOx6XSV",d:"Nov 6",u:1},
+ {n:"Orange",m:"Ai grija la tentative de frauda! Orange nu-ti cere coduri secrete s...",d:"Nov 4",u:7},
+ {n:"Cristian Munteanu",m:"ok, vorbim maine",d:"Nov 2",l:"C"},
+ {n:"Bogdan",m:"ai vazut meciul aseara?",d:"Oct 30",l:"B"},
+ {n:"Diana Ceban",m:"multumesc pentru ajutor!",d:"Oct 29",l:"D"},
+ {n:"Stefan Lungu",m:"sunt pe drum, ajung in 10 min",d:"Oct 27",l:"S"},
+ {n:"OrangeMD",m:"Bine ati venit in Poland. In roaming UE/SEE, poti utiliza res...",d:"Oct 25",u:1},
+ {n:"Card Frumos",m:"Codul de verificare este: 418903",d:"Oct 20"},
+ {n:"Tata",m:"Ai avut 2 apeluri de la aceasta",d:"Oct 18",u:1,l:"T",bg:"#f9b98a"}
+];
+const list=document.getElementById('list');
+data.forEach((c,i)=>{
+ const bg=c.bg||C[c.l];
+ const av=c.l?`<div class="av" style="background:${bg}">${c.l==="T"&&c.n==="Tata"?"T":c.n[0]}</div>`:`<div class="av">${person}</div>`;
+ const r=document.createElement('div');r.className='row'+(c.u?' unread':'');
+ r.innerHTML=av+`<div class="mid"><div class="name">${c.n}</div><div class="snip">${c.m}</div></div><div class="meta">${c.d}${c.u?`<br><span class="badge">${c.u}</span>`:''}</div>`;
+ r.onclick=()=>c.v?document.getElementById(c.v).classList.add("open"):openChat(c);list.appendChild(r);
+});
+const chat=document.getElementById('chat'),msgs=document.getElementById('msgs');
+function bubble(t,cls){const b=document.createElement('div');b.className='b '+cls;b.textContent=t;msgs.appendChild(b);msgs.scrollTop=msgs.scrollHeight}
+function openChat(c){
+ document.getElementById('cname').textContent=c.n;
+ document.getElementById('cav').outerHTML=`<div class="av" id="cav" ${c.l?`style="background:${c.bg||C[c.l]}"`:''}>${c.l?c.n[0]:person}</div>`;
+ msgs.innerHTML='';bubble(c.m,'in');chat.classList.add('open');
+}
+document.getElementById('back').onclick=()=>chat.classList.remove('open');
+const inp=document.getElementById('in');
+function send(){const t=inp.value.trim();if(!t)return;bubble(t,'out');inp.value=''}
+document.getElementById('send').onclick=send;
+inp.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+</script>
+<script>
+function initTicket(root,CONTACT_NUMBER){
+const $=id=>root.querySelector("#"+id);
+
+        const TICKET_PREFIX = "1341";
+    const ACTION_DEBOUNCE_MS = 400;
+    const BOARD_NUMBER_PATTERN = /^\d{4}$/;
+
+    const messagesEl = $("messages");
+    const inputEl = $("msg-input");
+    const sendBtn = $("send-btn");
+    const appEl = $("app");
+    const fsBtn = $("fullscreen-btn");
+    const dateLabelEl = $("date-label");
+
+    let ticketCounter = null;
+    let isBusy = false;
+    let lastActionTime = 0;
+
+        $("contact-name").textContent = CONTACT_NUMBER;
+    $("texting-label").textContent = `Texting with ${CONTACT_NUMBER} (SMS/MMS)`;
+    dateLabelEl.textContent = formatDateLabel(new Date());
+
+    function debounceAction(action) {
+      const now = Date.now();
+      if (now - lastActionTime < ACTION_DEBOUNCE_MS) {
+        return;
+      }
+      lastActionTime = now;
+      action();
+    }
+
+    function formatDateLabel(date) {
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()} • ${time}`;
+    }
+
+    function pad(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function updateSendButton() {
+      sendBtn.classList.toggle("active", inputEl.value.trim().length > 0);
+    }
+
+    function addMessage(text, type, isTicket = false) {
+      const row = document.createElement("div");
+      row.className = `msg-row ${type}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = isTicket ? "bubble ticket" : "bubble";
+      bubble.innerHTML = text;
+
+      const wrap = document.createElement("div");
+      if (isTicket) {
+        wrap.className = "ticket-wrap";
+      }
+      wrap.appendChild(bubble);
+      row.appendChild(wrap);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const row = document.createElement("div");
+      row.className = "msg-row received";
+      row.id = "typing-row";
+
+      const indicator = document.createElement("div");
+      indicator.className = "typing";
+      for (let i = 0; i < 3; i += 1) {
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        indicator.appendChild(dot);
+      }
+
+      row.appendChild(indicator);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      $("typing-row")?.remove();
+    }
+
+    function getTicketNumber() {
+      if (ticketCounter === null) {
+        ticketCounter = Math.floor(1000 + Math.random() * 9000);
+      } else {
+        ticketCounter += 1;
+      }
+      return `${TICKET_PREFIX}${String(ticketCounter).padStart(4, "0")}`;
+    }
+
+    function generateTicket(boardNumber) {
+      const now = new Date();
+      const date = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`;
+      const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      return [
+        `Bilet electronic nr. <u>${getTicketNumber()}</u>`,
+        `Data <u>${date}</u>\u00A0ora\u00A0<u>${time}</u>`,
+        "Valabil 1 ora",
+        "Pret 7 MDL",
+        `Numar de bord ${boardNumber}`,
+      ].join("\n");
+    }
+
+    function replyAfterDelay(text, delayMs, isTicket = false) {
+      setTimeout(() => {
+        showTypingIndicator();
+        setTimeout(() => {
+          removeTypingIndicator();
+          addMessage(text, "received", isTicket);
+          isBusy = false;
+          updateSendButton();
+        }, delayMs);
+      }, 300);
+    }
+
+    function sendMessage() {
+      const value = inputEl.value.trim();
+      if (!value || isBusy) {
+        return;
+      }
+
+      addMessage(escapeHtml(value), "sent");
+      inputEl.value = "";
+      updateSendButton();
+
+      if (!BOARD_NUMBER_PATTERN.test(value)) {
+        replyAfterDelay("Va rugam trimiteti numarul de bord din 4 cifre.", 1000);
+        return;
+      }
+
+      isBusy = true;
+      replyAfterDelay(generateTicket(value), 1500, true);
+    }
+
+    function toggleFullscreen() {
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+
+      if (!isFullscreen) {
+        const root = document.documentElement;
+        if (root.requestFullscreen) {
+          root.requestFullscreen().catch(() => {});
+        } else if (root.webkitRequestFullscreen) {
+          root.webkitRequestFullscreen();
+        }
+        appEl.classList.add("fullscreen-mode");
+        return;
+      }
+
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      appEl.classList.remove("fullscreen-mode");
+    }
+
+    function handleFullscreenChange() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        appEl.classList.remove("fullscreen-mode");
+      }
+    }
+
+    inputEl.addEventListener("input", updateSendButton);
+    inputEl.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        debounceAction(sendMessage);
+      }
+    });
+
+    sendBtn.addEventListener("click", () => debounceAction(sendMessage));
+    fsBtn.addEventListener("click", () => debounceAction(toggleFullscreen));
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+    updateSendButton();
+  
+root.querySelector(".hdr-back").addEventListener("click",()=>root.classList.remove("open"));
+}
+initTicket(document.getElementById("tview"),"7000");
+initTicket(document.getElementById("tview2"),"7001");
+</script>
+<script>
+(function(){
+ var m=matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone;
+ if(m)return;
+ addEventListener("click",function(){
+  var r=document.documentElement,f=r.requestFullscreen||r.webkitRequestFullscreen;
+  if(f&&!document.fullscreenElement){try{var p=f.call(r);if(p&&p.catch)p.catch(function(){})}catch(e){}}
+ },{once:true});
+})();
+</script>
+</body>
+</html>
